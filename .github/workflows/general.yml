@@ -39,7 +39,7 @@ jobs:
           SKIP_DOCKER=true POSTGRES_PASSWORD=${{ secrets.PG_PASSWORD }} ./scripts/init_db.sh
       - name: Check sqlx-data.json is up-to-date
         run: |
-          cargo sqlx prepare --check -- --bin zero2prod
+          cargo sqlx prepare --database-url ${{ secrets.PG_PASSWORD }} --check -- --bin zero2prod
       - name: Run tests
         run: cargo test
 

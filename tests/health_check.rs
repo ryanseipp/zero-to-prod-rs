@@ -94,7 +94,7 @@ async fn spawn_app() -> TestApp {
 
     let server = zero_to_prod_rs::startup::run(listener, connection_pool.clone())
         .expect("Failed to bind address");
-    let _ = tokio::spawn(server);
+    tokio::spawn(server);
 
     TestApp {
         address,

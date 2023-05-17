@@ -1,6 +1,6 @@
 use std::net::TcpListener;
 
-use sqlx::{Connection, PgConnection, PgPool};
+use sqlx::PgPool;
 use zero_to_prod_rs::configuration::get_configuration;
 use zero_to_prod_rs::startup::run;
 
