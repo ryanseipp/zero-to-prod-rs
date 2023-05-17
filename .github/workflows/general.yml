@@ -6,6 +6,7 @@ env:
   CARGO_TERM_COLOR: always
   SQLX_VERSION: 0.6.3
   SQLX_FEATURES: "rustls,postgres"
+  DB_URL: "postgres://postgres:${{ secrets.PG_PASSWORD }}@localhost:5432/postgres" 
 
 jobs:
   test:
@@ -34,13 +35,20 @@ jobs:
             --no-default-features
             --locked
       - name: Migrate database
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          SKIP_DOCKER: true
         run: |
           sudo apt-get install libpq-dev -y
-          SKIP_DOCKER=true POSTGRES_PASSWORD=${{ secrets.PG_PASSWORD }} ./scripts/init_db.sh
+          ./scripts/init_db.sh
       - name: Check sqlx-data.json is up-to-date
+        env:
+          DATABASE_URL: ${{ env.DB_URL }}
         run: |
-          cargo sqlx prepare --database-url ${{ secrets.PG_PASSWORD }} --check -- --bin zero2prod
+          cargo sqlx prepare --check -- --bin zero-to-prod-rs
       - name: Run tests
+        env:
+          DATABASE_URL: ${{ env.DB_URL }}
         run: cargo test
 
   fmt:
@@ -82,10 +90,15 @@ jobs:
             --no-default-features
             --locked
       - name: Migrate database
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          SKIP_DOCKER: true
         run: |
           sudo apt-get install libpq-dev -y
-          SKIP_DOCKER=true POSTGRES_PASSWORD=${{ secrets.PG_PASSWORD }} ./scripts/init_db.sh
+          ./scripts/init_db.sh
       - name: Linting
+        env:
+          DATABASE_URL: ${{ env.DB_URL }}
         run: cargo clippy -- -D warnings
 
   coverage:
@@ -119,6 +132,13 @@ jobs:
           --no-default-features
           --locked
       - name: Migrate database
-        run: SKIP_DOCKER=true POSTGRES_PASSWORD=${{ secrets.PG_PASSWORD }} ./scripts/init_db.sh
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          SKIP_DOCKER: true
+        run: |
+          sudo apt-get install libpq-dev -y
+          ./scripts/init_db.sh
       - name: Generate code coverage
+        env:
+          DATABASE_URL: ${{ env.DB_URL }}
         run: cargo tarpaulin --verbose --workspace
