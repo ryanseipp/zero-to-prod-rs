@@ -31,7 +31,7 @@ impl DatabaseSettings {
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    dotenv().expect("Failed to load .env");
+    dotenv().ok();
     let settings = config::Config::builder()
         .add_source(config::File::new(
             "configuration.yaml",
