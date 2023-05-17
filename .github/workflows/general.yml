@@ -7,6 +7,7 @@ env:
   SQLX_VERSION: 0.6.3
   SQLX_FEATURES: "rustls,postgres"
   POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+  DATABASE_PASSWORD: ${{ secrets.PG_PASSWORD }}
   POSTGRES_DB: postgres
   DATABASE_URL: postgres://postgres:${{ secrets.PG_PASSWORD }}@localhost:5432/postgres
   SKIP_DOCKER: true
