@@ -14,8 +14,13 @@ if ! [ -x "$(command -v sqlx)" ]; then
     exit 1
 fi
 
+if [ -e .env ]; then
+    source .env
+    POSTGRES_PASSWORD="${DATABASE_PASSWORD}"
+fi
+
 DB_USER="${POSTGRES_USER:=postgres}"
-DB_PASSWORD="${POSTGRES_PASSWORD:=password}"
+DB_PASSWORD="${POSTGRES_PASSWORD}"
 DB_NAME="${POSTGRES_DB:=newsletter}"
 DB_PORT="${POSTGRES_PORT:=5432}"
 DB_HOST="${POSTGRES_HOST:=localhost}"
