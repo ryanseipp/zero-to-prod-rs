@@ -6,7 +6,7 @@ env:
   CARGO_TERM_COLOR: always
   SQLX_VERSION: 0.6.3
   SQLX_FEATURES: "rustls,postgres"
-  DB_URL: "postgres://postgres:${{ secrets.PG_PASSWORD }}@localhost:5432/postgres" 
+  DB_URL: "postgres://postgres:${{ secrets.PG_PASSWORD }}@localhost:5432/newsletter" 
 
 jobs:
   test:
