@@ -16,35 +16,34 @@ fi
 
 if [ -e .env ]; then
     source .env
-    POSTGRES_PASSWORD="${DATABASE_PASSWORD}"
 fi
 
-DB_USER="${POSTGRES_USER:=postgres}"
-DB_PASSWORD="${POSTGRES_PASSWORD}"
-DB_NAME="${POSTGRES_DB:=newsletter}"
-DB_PORT="${POSTGRES_PORT:=5432}"
-DB_HOST="${POSTGRES_HOST:=localhost}"
+DATABASE_USER="${DATABASE_USER:=postgres}"
+DATABASE_PASSWORD="${DATABASE_PASSWORD}"
+DATABASE_NAME="${DATABASE_NAME:=newsletter}"
+DATABASE_PORT="${DATABASE_PORT:=5432}"
+DATABASE_HOST="${DATABASE_HOST:=localhost}"
 
 if [[ -z "${SKIP_DOCKER}" ]]; then
     docker run \
-        -e POSTGRES_USER=${DB_USER} \
-        -e POSTGRES_PASSWORD=${DB_PASSWORD} \
-        -e POSTGRES_DB=${DB_NAME} \
-        -p "${DB_PORT}":5432 \
+        -e POSTGRES_USER=${DATABASE_USER} \
+        -e POSTGRES_PASSWORD=${DATABASE_PASSWORD} \
+        -e POSTGRES_DB=${DATABASE_NAME} \
+        -p "${DATABASE_PORT}":5432 \
         -d postgres \
         postgres -N 1000
 fi
 
 # Keep pinging Postgres until it's ready to accept commands
-export PGPASSWORD="${DB_PASSWORD}"
-until psql -h "${DB_HOST}" -U "${DB_USER}" -p "${DB_PORT}" -d "postgres" -c '\q'; do
+export PGPASSWORD="${DATABASE_PASSWORD}"
+until psql -h "${DATABASE_HOST}" -U "${DATABASE_USER}" -p "${DATABASE_PORT}" -d "postgres" -c '\q'; do
     >&2 echo "Postgres is still unavailable - sleeping"
     sleep 1
 done
 
->&2 echo "Postgres is up and running on port ${DB_PORT}!"
+>&2 echo "Postgres is up and running on port ${DATABASE_PORT}!"
 
-export DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+export DATABASE_URL=postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
 sqlx database create
 sqlx migrate run
 
