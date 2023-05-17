@@ -6,7 +6,10 @@ env:
   CARGO_TERM_COLOR: always
   SQLX_VERSION: 0.6.3
   SQLX_FEATURES: "rustls,postgres"
-  DB_URL: "postgres://postgres:${{ secrets.PG_PASSWORD }}@localhost:5432/newsletter" 
+  POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+  POSTGRES_DB: postgres
+  DATABASE_URL: postgres://postgres:${{ secrets.PG_PASSWORD }}@localhost:5432/postgres
+  SKIP_DOCKER: true
 
 jobs:
   test:
@@ -17,8 +20,8 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          POSTGRES_DB: newsletter
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
     steps:
@@ -35,20 +38,13 @@ jobs:
             --no-default-features
             --locked
       - name: Migrate database
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          SKIP_DOCKER: true
         run: |
           sudo apt-get install libpq-dev -y
           ./scripts/init_db.sh
       - name: Check sqlx-data.json is up-to-date
-        env:
-          DATABASE_URL: ${{ env.DB_URL }}
         run: |
           cargo sqlx prepare --check -- --bin zero-to-prod-rs
       - name: Run tests
-        env:
-          DATABASE_URL: ${{ env.DB_URL }}
         run: cargo test
 
   fmt:
@@ -70,8 +66,8 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          POSTGRES_DB: newsletter
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
     steps:
@@ -90,15 +86,10 @@ jobs:
             --no-default-features
             --locked
       - name: Migrate database
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          SKIP_DOCKER: true
         run: |
           sudo apt-get install libpq-dev -y
           ./scripts/init_db.sh
       - name: Linting
-        env:
-          DATABASE_URL: ${{ env.DB_URL }}
         run: cargo clippy -- -D warnings
 
   coverage:
@@ -110,7 +101,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          POSTGRES_DB: newsletter
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
     steps:
@@ -132,13 +123,8 @@ jobs:
           --no-default-features
           --locked
       - name: Migrate database
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
-          SKIP_DOCKER: true
         run: |
           sudo apt-get install libpq-dev -y
           ./scripts/init_db.sh
       - name: Generate code coverage
-        env:
-          DATABASE_URL: ${{ env.DB_URL }}
         run: cargo tarpaulin --verbose --workspace
