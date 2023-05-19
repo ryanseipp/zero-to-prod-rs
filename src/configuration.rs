@@ -1,4 +1,7 @@
+use std::time::Duration;
+
 use dotenv::dotenv;
+use reqwest::Url;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::prelude::deserialize_number_from_string;
 use sqlx::{
@@ -6,13 +9,16 @@ use sqlx::{
     ConnectOptions,
 };
 
-#[derive(serde::Deserialize)]
+use crate::domain::SubscriberEmail;
+
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
+    pub email_client: EmailClientSettings,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub username: String,
     pub password: Secret<String>,
@@ -23,11 +29,19 @@ pub struct DatabaseSettings {
     pub require_ssl: bool,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct EmailClientSettings {
+    pub base_url: String,
+    pub sender_email: String,
+    pub authorization_token: Secret<String>,
+    pub timeout_milliseconds: u64,
 }
 
 impl DatabaseSettings {
@@ -50,6 +64,20 @@ impl DatabaseSettings {
         options.log_statements(tracing_log::log::LevelFilter::Trace);
 
         options
+    }
+}
+
+impl EmailClientSettings {
+    pub fn url(&self) -> Url {
+        Url::parse(&self.base_url).expect("Failed to parse url")
+    }
+
+    pub fn sender(&self) -> Result<SubscriberEmail, String> {
+        SubscriberEmail::parse(self.sender_email.clone())
+    }
+
+    pub fn timeout(&self) -> Duration {
+        Duration::from_millis(self.timeout_milliseconds)
     }
 }
 
