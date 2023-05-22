@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use dotenv::dotenv;
 use reqwest::Url;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::prelude::deserialize_number_from_string;
@@ -113,7 +112,7 @@ impl TryFrom<String> for Environment {
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
-    dotenv().ok();
+    dotenvy::dotenv().ok();
 
     let environment: Environment = std::env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
