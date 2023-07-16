@@ -14,7 +14,6 @@ pub struct FormData {
     title: String,
     content_html: String,
     content_text: String,
-    idempotency_key: String,
 }
 
 #[tracing::instrument(

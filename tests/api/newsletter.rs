@@ -91,15 +91,6 @@ async fn newsletters_returns_400_for_invalid_data() {
             },
             "missing content",
         ),
-        (
-            Newsletter {
-                title: Some("Newsletter title".to_string()),
-                content_html: Some("<p>Newsletter body as HTML</p>".to_string()),
-                content_text: Some("Newsletter body as plain text".to_string()),
-                idempotency_key: None,
-            },
-            "missing idempotency_key",
-        ),
     ];
 
     for (invalid_body, error_message) in test_cases {
