@@ -6,10 +6,6 @@ env:
   CARGO_TERM_COLOR: always
   SQLX_VERSION: 0.6.3
   SQLX_FEATURES: "rustls,postgres"
-  SKIP_DOCKER: true
-  DATABASE_NAME: postgres
-  DATABASE_PASSWORD: ${{ secrets.PG_PASSWORD }}
-  DATABASE_URL: postgres://postgres:${{ secrets.PG_PASSWORD }}@localhost:5432/postgres
 
 jobs:
   test:
@@ -20,10 +16,14 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          POSTGRES_PASSWORD: password
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
@@ -40,7 +40,7 @@ jobs:
       - name: Migrate database
         run: |
           sudo apt-get install libpq-dev -y
-          ./scripts/init_db.sh
+          SKIP_DOCKER=true ./scripts/init_db.sh
       - name: Check sqlx-data.json is up-to-date
         run: |
           cargo sqlx prepare --check -- --bin zero-to-prod-rs
@@ -66,7 +66,7 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          POSTGRES_PASSWORD: password
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
@@ -88,7 +88,7 @@ jobs:
       - name: Migrate database
         run: |
           sudo apt-get install libpq-dev -y
-          ./scripts/init_db.sh
+          SKIP_DOCKER=true ./scripts/init_db.sh
       - name: Linting
         run: cargo clippy -- -D warnings
 
@@ -100,10 +100,14 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.PG_PASSWORD }}
+          POSTGRES_PASSWORD: password
           POSTGRES_DB: postgres
         ports:
           - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -118,13 +122,11 @@ jobs:
       - name: Install sqlx-cli
         run:
           cargo install sqlx-cli
-          --version=${{ env.SQLX_VERSION }}
-          --features ${{ env.SQLX_FEATURES }}
-          --no-default-features
-          --locked
+            --version=${{ env.SQLX_VERSION }}
+            --features ${{ env.SQLX_FEATURES }}
+            --no-default-features
+            --locked
       - name: Migrate database
-        run: |
-          sudo apt-get install libpq-dev -y
-          ./scripts/init_db.sh
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
       - name: Generate code coverage
         run: cargo tarpaulin --workspace
