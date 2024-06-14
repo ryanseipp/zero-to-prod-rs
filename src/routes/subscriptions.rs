@@ -1,8 +1,8 @@
+use actix_web::http::StatusCode;
 use actix_web::{web, HttpResponse, ResponseError};
 use anyhow::Context;
 use chrono::Utc;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
-use reqwest::StatusCode;
 use sqlx::{Executor, PgPool, Postgres, Transaction};
 use uuid::Uuid;
 
@@ -29,7 +29,7 @@ pub enum SubscribeError {
 }
 
 impl ResponseError for SubscribeError {
-    fn status_code(&self) -> reqwest::StatusCode {
+    fn status_code(&self) -> actix_web::http::StatusCode {
         match self {
             SubscribeError::ValidationError(_) => StatusCode::BAD_REQUEST,
             SubscribeError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,

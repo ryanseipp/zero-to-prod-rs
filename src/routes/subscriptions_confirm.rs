@@ -1,6 +1,6 @@
+use actix_web::http::StatusCode;
 use actix_web::{web, HttpResponse, ResponseError};
 use anyhow::Context;
-use reqwest::StatusCode;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -26,7 +26,7 @@ impl std::fmt::Debug for ConfirmError {
 }
 
 impl ResponseError for ConfirmError {
-    fn status_code(&self) -> reqwest::StatusCode {
+    fn status_code(&self) -> actix_web::http::StatusCode {
         match self {
             ConfirmError::UnknownToken => StatusCode::UNAUTHORIZED,
             ConfirmError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
